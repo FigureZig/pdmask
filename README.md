@@ -214,8 +214,8 @@ dune exec tools/bench/score_pdmask.exe -- --corpus tools/bench/corpus/external/r
 ```
 
 Что за корпуса, откуда взяты и по каким лицензиям — в
-[tools/bench/corpus/README.md](tools/bench/corpus/README.md). Внешние датасеты в
-архив решения не входят и скачиваются по ссылкам оттуда.
+[tools/bench/corpus/README.md](tools/bench/corpus/README.md). Внешние датасеты
+(pii-bench и russian-pii-66k) входят в архив решения.
 
 ### Нагрузочный тест
 

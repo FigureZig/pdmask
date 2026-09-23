@@ -242,7 +242,7 @@ print(f'{code % 100000000:08d}')
       bin lib config dicts models tools web \
       -x '*/_build/*' -x '*/.git/*' -x '*.zip' \
       -x 'tools/.pii_bench_cache/*' \
-      -x 'tools/bench/corpus/external/*' \
+      -x '*/__pycache__/*' -x '*.pyc' \
       -x '*/.gitkeep'
     echo "zip: OK (pdmask.zip)"
     ;;
