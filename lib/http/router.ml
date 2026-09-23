@@ -60,31 +60,12 @@ type ctx =
     dict : Dict.t;
     bank_index : Textindex.t;
     public_forms : Dict.t;
-    seqmodel : Seqmodel.t option;
     config : Config.t Atomic.t;
     metrics : Metrics.t;
     k_master : string; (* master key for the envelope, from env *)
     otp : Otp.t; (* одноразовые коды, счётчик шага на каждого вызывающего *)
     admin_password : string (* basic auth for admin/demo endpoints *)
   }
-
-(* Состояние последовательной модели хранит рабочие массивы и потому не
-   разделяемо: домены работают параллельно. Пул на домен, как у токенов. *)
-module Seq_pool = struct
-  let key : Seqmodel.state list ref Domain.DLS.key = Domain.DLS.new_key (fun () -> ref [])
-
-  let take () : Seqmodel.state =
-    let p = Domain.DLS.get key in
-    match !p with
-    | t :: rest ->
-        p := rest;
-        t
-    | [] -> Seqmodel.make_state ()
-
-  let give (t : Seqmodel.state) : unit =
-    let p = Domain.DLS.get key in
-    if List.length !p < 4 then p := t :: !p
-end
 
 (* Sentence index of every candidate, assigned in one pass over the payload.
    The spans are visited in ascending start order, so the payload pointer only
@@ -129,98 +110,12 @@ let analyze (ctx : ctx) (payload : string) :
   Fun.protect ~finally:(fun () -> Toks_pool.give toks) @@ fun () ->
   Lexer.lex toks ctx.dict payload;
   let candidates = Rules.detect payload toks in
-  (* Последовательная модель: размечает персоны и места по токенам. Даёт и
-     доказательство существующим кандидатам, и новых кандидатов там, где
-     правила промолчали — имя или топоним, которых нет в словарях. *)
-  let model_tags, model_spans =
-    match ctx.seqmodel with
-    (* Порог по размеру тела. Модель — самая дорогая часть конвейера: на
-       400 КБ она стоит около пятидесяти миллисекунд против одиннадцати у
-       всего остального. Обращения проверяющей системы — это двести байт, и
-       там она обходится в семнадцать микросекунд; текст в сотню тысяч
-       токенов приходит по другому требованию ТЗ, и на нём полнота уступает
-       место пропускной способности. *)
-    | Some _ when String.length payload > 65536 -> (Bytes.empty, [])
-    | None -> (Bytes.empty, [])
-    | Some m ->
-        let st = Seq_pool.take () in
-        Fun.protect ~finally:(fun () -> Seq_pool.give st) @@ fun () ->
-        (* По предложениям, а не по всему телу: модель обучена на
-           предложениях, и переход между тегами через границу предложения
-           смысла не имеет, а признаки начала и конца должны срабатывать на
-           каждом. Заодно отрезок, где заведомо нечего искать, пропускается
-           целиком. *)
-        let ents = ref [] in
-        let nsent = toks.Lexer.nsent in
-        let sidx = ref 0 in
-        let seg_lo = ref 0 in
-        for i = 0 to toks.Lexer.n - 1 do
-          let boundary = !sidx < nsent && toks.Lexer.start.(i) >= toks.Lexer.sent.(!sidx) in
-          if boundary then (
-            while !sidx < nsent && toks.Lexer.start.(i) >= toks.Lexer.sent.(!sidx) do
-              incr sidx
-            done;
-            if i > !seg_lo then
-              ents :=
-                List.rev_append
-                  (Seqmodel.tag_gated m st ctx.dict toks payload !seg_lo (i - 1))
-                  !ents;
-            seg_lo := i
-          )
-        done;
-        if toks.Lexer.n > !seg_lo then
-          ents :=
-            List.rev_append
-              (Seqmodel.tag_gated m st ctx.dict toks payload !seg_lo (toks.Lexer.n - 1))
-              !ents;
-        let ents = List.rev !ents in
-        let tags = Bytes.make toks.Lexer.n '\000' in
-        let spans = ref [] in
-        List.iter
-          (fun (e : Seqmodel.ent) ->
-            let c = Char.chr (e.Seqmodel.ety + 1) in
-            for i = e.Seqmodel.elo to e.Seqmodel.ehi do
-              Bytes.set tags i c
-            done;
-            (* организации персональными данными не являются, кандидатов из
-               них не делаем *)
-            if e.Seqmodel.ety <= 1 && e.Seqmodel.esup then
-              let st_b = toks.Lexer.start.(e.Seqmodel.elo) in
-              let en_b = toks.Lexer.start.(e.Seqmodel.ehi) + toks.Lexer.len.(e.Seqmodel.ehi) in
-              (* Кандидат из модели заводится ТОЛЬКО там, где правила
-                 промолчали совсем. Если правило уже нашло спан, его границы
-                 точнее: подавления вроде публичной персоны или эпонима
-                 привязаны к полной форме имени, и спан модели, покрывающий
-                 одну фамилию, из-под них выскальзывает. В таком месте модель
-                 остаётся доказательством, а спан берётся правиловый. *)
-              let overlaps =
-                List.exists
-                  (fun (c : Spans.span) ->
-                    c.Spans.start < en_b && st_b < c.Spans.start + c.Spans.len
-                  )
-                  candidates
-              in
-              if not overlaps then
-                let ty =
-                  if e.Seqmodel.ety = 0 then
-                    Spans.Fio
-                  else
-                    Spans.Address
-                in
-                spans :=
-                  {Spans.start = st_b; len = en_b - st_b; ty; score = 40; holes = []} :: !spans
-          )
-          ents;
-        (tags, !spans)
-  in
-  let candidates = candidates @ model_spans in
   let ev_ctx =
     { Evidence.bank_index = ctx.bank_index;
       public_forms = ctx.public_forms;
       payload;
       payload_cp = Evidence.code_points_capped payload 64;
-      toks;
-      model_tags
+      toks
     }
   in
   (* first pass: collect the evidence and decide without E_COOCCUR *)

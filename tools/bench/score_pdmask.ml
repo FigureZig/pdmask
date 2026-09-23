@@ -158,7 +158,6 @@ let () =
       dict;
       bank_index = Textindex.of_keys (Dictload.load_bank_offices dicts_dir);
       public_forms = Dictload.public_forms persons;
-      seqmodel = Seqmodel.load "models/seqmodel.bin";
       config = Atomic.make Pdmask_core.Config.default_config;
       metrics = Pdmask_core.Metrics.create ();
       k_master = "bench-master-key-00000000000000000000000000000000";

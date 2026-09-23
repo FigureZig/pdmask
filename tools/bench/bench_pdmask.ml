@@ -69,7 +69,6 @@ let ev_ctx n toks =
   let p = payload n in
   { Evidence.bank_index;
     public_forms = Dictload.public_forms persons;
-    model_tags = Bytes.empty;
     payload = p;
     payload_cp = Evidence.code_points_capped p 64;
     toks
@@ -128,7 +127,6 @@ let router_ctx =
     dict;
     bank_index;
     public_forms = Dictload.public_forms persons;
-    seqmodel = Seqmodel.load "models/seqmodel.bin";
     config = Atomic.make Pdmask_core.Config.default_config;
     metrics = Pdmask_core.Metrics.create ();
     k_master = "bench-master-key-00000000000000000000000000000000";

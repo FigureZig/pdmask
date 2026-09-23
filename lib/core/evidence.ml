@@ -55,11 +55,6 @@ type code =
   | E_STOPCTX
   | E_TITLE
   | E_PUBLIC_SURN
-  (* Последовательная модель узнала персону или место — см. seqmodel.ml.
-     Отдельные коды, а не общий, потому что вес у них разный: персона
-     распознаётся надёжнее места (F1 0.952 против 0.926 на Collection3). *)
-  | E_MODEL_PER
-  | E_MODEL_LOC
 
 let code_name (c : code) : string =
   match c with
@@ -78,13 +73,9 @@ let code_name (c : code) : string =
   | E_STOPCTX -> "E_STOPCTX"
   | E_TITLE -> "E_TITLE"
   | E_PUBLIC_SURN -> "E_PUBLIC_SURN"
-  | E_MODEL_PER -> "E_MODEL_PER"
-  | E_MODEL_LOC -> "E_MODEL_LOC"
 
 let weight (c : code) : int =
   match c with
-  | E_MODEL_PER -> 8
-  | E_MODEL_LOC -> 10
   | E_CHECKSUM -> 45
   | E_KW_NEAR -> 40
   | E_COOCCUR -> 35
@@ -111,9 +102,6 @@ type evidence =
 type ctx =
   { bank_index : Textindex.t;
     public_forms : Dict.t;
-    (* Разметка модели по токенам: 0 — ничего, 1 — персона, 2 — место,
-       3 — организация. Пустой массив означает, что модель не загружена. *)
-    model_tags : Bytes.t;
     payload : string;
     payload_cp : int; (* length in code points, for E_WHOLE *)
     toks : Lexer.toks
@@ -761,36 +749,6 @@ let collect (ctx : ctx) (s : Spans.span) : evidence list =
     );
     (* An address matching a bank office is not a client's address — unless it
        carries a flat number, which a bank office never has (spec 5.4). *)
-    (* Модель как доказательство: спан пересёкся с персоной или местом,
-       которые нашла последовательная модель. Она видит имена и топонимы,
-       которых нет ни в одном словаре, — абляция при обучении показала, что
-       без словарных признаков персоны всё равно опознаются с F1 0.937. *)
-    ( if Bytes.length ctx.model_tags > 0 && lo >= 0 then
-        let want =
-          match s.Spans.ty with
-          | Spans.Fio | Spans.Card_holder -> 1
-          | Spans.Address | Spans.Birth_place -> 2
-          | _ -> 0
-        in
-        if want > 0 then (
-          let hit = ref false in
-          let k = ref lo in
-          while (not !hit) && !k <= hi do
-            if !k < Bytes.length ctx.model_tags && Char.code (Bytes.get ctx.model_tags !k) = want
-            then
-              hit := true;
-            incr k
-          done;
-          if !hit then
-            add
-              ( if want = 1 then
-                  E_MODEL_PER
-                else
-                  E_MODEL_LOC
-              )
-              i
-        )
-    );
     if s.Spans.ty = Spans.Address && matches_bank_office ctx s && not (has_flat_number folded) then
       add E_ORGADDR i
   );

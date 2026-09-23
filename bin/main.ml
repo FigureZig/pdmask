@@ -50,12 +50,6 @@ let serve () =
   let public_forms = Dictload.public_forms persons in
   (* Последовательная модель необязательна: нет файла — сервис работает на
      одних правилах, только с меньшей полнотой. *)
-  let seqmodel = Seqmodel.load "models/seqmodel.bin" in
-  Printf.printf "pdmask seqmodel: %s\n%!"
-    ( match seqmodel with
-    | Some _ -> "models/seqmodel.bin загружена"
-    | None -> "не найдена, работаем на правилах"
-    );
   check_dicts dict;
   let bank_index = Textindex.of_keys (Dictload.load_bank_offices "dicts") in
   let k_master =
@@ -74,7 +68,6 @@ let serve () =
       dict;
       bank_index;
       public_forms;
-      seqmodel;
       config = Atomic.make config;
       metrics = Metrics.create ();
       k_master;

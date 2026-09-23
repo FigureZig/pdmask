@@ -101,8 +101,6 @@ let evidence_index (code : Evidence.code) : int =
   | Evidence.E_COOCCUR -> 12
   | Evidence.E_WHOLE -> 13
   | Evidence.E_CHECKSUM -> 14
-  | Evidence.E_MODEL_PER -> 15
-  | Evidence.E_MODEL_LOC -> 16
 
 let n_evidence = 17
 

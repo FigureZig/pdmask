@@ -63,7 +63,6 @@ let () =
   let ctx =
     { Evidence.bank_index;
       public_forms = Dictload.public_forms persons;
-      model_tags = Bytes.empty;
       payload;
       payload_cp = Evidence.code_points_capped payload 64;
       toks
@@ -95,7 +94,6 @@ let () =
           dict;
           bank_index;
           public_forms = Dictload.public_forms persons;
-          seqmodel = Seqmodel.load "models/seqmodel.bin";
           config = Atomic.make Config.default_config;
           metrics = Metrics.create ();
           k_master = "bench-master-key-00000000000000000000000000000000";
@@ -183,18 +181,6 @@ let () =
       time "collect целиком" (fun () ->
           List.iter (fun c -> sink := !sink + List.length (Evidence.collect ctx c)) cands
       )
-  | "model" -> (
-      match Seqmodel.load "models/seqmodel.bin" with
-      | None -> print_endline "модель не найдена"
-      | Some m ->
-          let st = Seqmodel.make_state () in
-          time "модель, всё тело" (fun () ->
-              sink :=
-                !sink + List.length (Seqmodel.tag_range m st dict toks payload 0 (toks.Lexer.n - 1))
-          );
-          let ents = Seqmodel.tag_range m st dict toks payload 0 (toks.Lexer.n - 1) in
-          Printf.printf "сущностей найдено: %d\n" (List.length ents)
-    )
   | "evidence" ->
       time "доказательства" (fun () ->
           List.iter (fun c -> sink := !sink + List.length (Evidence.collect ctx c)) cands
