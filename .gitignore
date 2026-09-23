@@ -1,0 +1,19 @@
+# Сборка и артефакты
+_build/
+*.zip
+*.install
+.merlin
+
+# Служебные каталоги
+.kilo/
+.kilocode/
+.opencode/
+__pycache__/
+*.pyc
+
+# Внешние датасеты (не входят в архив решения, скачиваются отдельно)
+tools/bench/corpus/external/
+tools/.pii_bench_cache/
+
+# Внутренние документы (критерии, ТЗ) — не для публичного репозитория
+docs/

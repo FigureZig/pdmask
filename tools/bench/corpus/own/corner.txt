@@ -1,0 +1,577 @@
+# Корпус корнеркейсов pdmask. Правится руками, ничем не генерируется.
+#
+# Формат тот же, что у cases.txt: {{тип|значение}}, смещения считаются из разметки.
+#
+# Что здесь собрано и почему:
+#   - адресные сокращения по номенклатуре ФИАС (пр-т, б-р, ш., туп., мкр., кв-л,
+#     вл., лит., ком., п., эт.) — служебное слово остаётся видимым, под маску
+#     уходит только значение;
+#   - номер дома во всех живых формах: через дробь, с литерной буквой, с
+#     корпусом и строением, через дефис;
+#   - названия улиц, которые сами состоят из чисел и дефисов;
+#   - ФИО: двойные фамилии, инициалы с двух сторон, отчества на -ич и -ична,
+#     тюркские оглы и кызы, корейские имена, фамилии-омонимы обычных слов,
+#     косвенные падежи;
+#   - документы во всех записях, которые встречаются в переписке;
+#   - негативные случаи, где маскировать НЕЛЬЗЯ по существу, а не по стилю.
+#
+# Юридическая опора негативных случаев (152-ФЗ, ст. 3):
+#   персональные данные — это информация, относящаяся к определённому или
+#   определяемому ФИЗИЧЕСКОМУ лицу. Поэтому НЕ являются персональными данными
+#   и маскированию не подлежат:
+#     - ИНН юридического лица (10 цифр; у физлица 12) — cor-neg-04;
+#     - ОГРН (13 цифр), КПП, БИК, расчётный счёт организации — cor-neg-05..08;
+#     - адрес отделения банка как места оказания услуг — cor-neg-09;
+#     - единый номер поддержки и ролевой почтовый ящик: они не идентифицируют
+#       физическое лицо — cor-neg-17, cor-neg-18.
+#   Публичная персона в публичном же контексте выведена из-под маскирования
+#   отдельным требованием ТЗ — cor-neg-10.
+#
+# Все данные синтетические: контрольные суммы ИНН, СНИЛС и карты посчитаны,
+# домены из RFC 2606, номера не принадлежат никому.
+
+@case id=cor-mk-01 size=sentence polarity=pos expect=mask
+@probes проспект в полной форме
+@text
+Адрес: г. {{address|Москва}}, проспект {{address|Мира}}, д. {{address|15}}, кв. {{address|4}}
+@end
+
+@case id=cor-mk-02 size=sentence polarity=pos expect=mask
+@probes проспект как пр-т
+@text
+Адрес: г. {{address|Москва}}, пр-т {{address|Мира}}, д. {{address|15}}
+@end
+
+@case id=cor-mk-03 size=sentence polarity=pos expect=mask
+@probes проспект как пр-кт
+@text
+Адрес: {{address|Москва}}, Ленинский пр-кт, д. {{address|15}}
+@end
+
+@case id=cor-mk-04 size=sentence polarity=pos expect=mask
+@probes проспект как просп.
+@text
+Адрес: {{address|Москва}}, просп. {{address|Вернадского}}, д. {{address|8}}
+@end
+
+@case id=cor-mk-05 size=sentence polarity=pos expect=mask
+@probes бульвар как б-р
+@text
+Адрес: г. {{address|Москва}}, б-р {{address|Гагарина}}, д. {{address|3}}
+@end
+
+@case id=cor-mk-06 size=sentence polarity=pos expect=mask
+@probes шоссе как ш.
+@text
+Адрес: {{address|Москва}}, Открытое ш., д. {{address|2}}
+@end
+
+@case id=cor-mk-07 size=sentence polarity=pos expect=mask
+@probes тупик как туп.
+@text
+Адрес: {{address|Москва}}, Марьинский туп., д. {{address|4}}
+@end
+
+@case id=cor-mk-08 size=sentence polarity=pos expect=mask
+@probes площадь как пл.
+@text
+Адрес: {{address|Москва}}, пл. {{address|Победы}}, д. {{address|1}}
+@end
+
+@case id=cor-mk-09 size=sentence polarity=pos expect=mask
+@probes переулок как пер.
+@text
+Адрес: г. {{address|Тверь}}, пер. {{address|Садовый}}, д. {{address|6}}
+@end
+
+@case id=cor-mk-10 size=sentence polarity=pos expect=mask
+@probes набережная как наб.
+@text
+Адрес: г. {{address|Тверь}}, наб. {{address|Степана Разина}}, д. {{address|3}}
+@end
+
+@case id=cor-mk-11 size=sentence polarity=pos expect=mask
+@probes микрорайон как мкр.
+@text
+Адрес: г. {{address|Химки}}, мкр. {{address|Северный}}, к. {{address|5}}
+@end
+
+@case id=cor-mk-12 size=sentence polarity=pos expect=mask
+@probes посёлок как пос.
+@text
+Адрес: {{address|Ленинградская обл}}, пос. {{address|Сосновка}}, д. {{address|12}}
+@end
+
+@case id=cor-mk-13 size=sentence polarity=pos expect=mask
+@probes квартал как кв-л
+@text
+Адрес: г. {{address|Тольятти}}, кв-л {{address|Центральный}}, д. {{address|9}}
+@end
+
+@case id=cor-mk-14 size=sentence polarity=pos expect=mask
+@probes аллея как полное слово
+@text
+Адрес: г. {{address|Москва}}, {{address|Берёзовая}} аллея, д. {{address|7}}
+@end
+
+@case id=cor-mk-15 size=sentence polarity=pos expect=mask
+@probes линия как полное слово
+@text
+Адрес: г. {{address|Санкт-Петербург}}, {{address|6-я}} линия, д. {{address|21}}
+@end
+
+@case id=cor-hn-01 size=sentence polarity=pos expect=mask
+@probes дом через дробь
+@text
+Проживает: г. {{address|Москва}}, ул. {{address|Тверская}}, д. {{address|12/3}}, кв. {{address|7}}
+@end
+
+@case id=cor-hn-02 size=sentence polarity=pos expect=mask
+@probes дом с литерной буквой слитно
+@text
+Проживает: г. {{address|Москва}}, ул. {{address|Тверская}}, д. {{address|5а}}, кв. {{address|7}}
+@end
+
+@case id=cor-hn-03 size=sentence polarity=pos expect=mask
+@probes дом с корпусом через к.
+@text
+Проживает: г. {{address|Москва}}, ул. {{address|Тверская}}, д. {{address|5}}, к. {{address|2}}
+@end
+
+@case id=cor-hn-04 size=sentence polarity=pos expect=mask
+@probes дом, корпус и строение
+@text
+Проживает: г. {{address|Москва}}, ул. {{address|Тверская}}, д. {{address|5}}, корп. {{address|2}}, стр. {{address|1}}
+@end
+
+@case id=cor-hn-05 size=sentence polarity=pos expect=mask
+@probes владение вместо дома
+@text
+Офис клиента: г. {{address|Москва}}, ул. {{address|Тверская}}, вл. {{address|7}}
+@end
+
+@case id=cor-hn-06 size=sentence polarity=pos expect=mask
+@probes литера отдельным маркером
+@text
+Проживает: г. {{address|Москва}}, ул. {{address|Мира}}, д. {{address|1}}, лит. {{address|А}}
+@end
+
+@case id=cor-hn-07 size=sentence polarity=pos expect=mask
+@probes комната вместо квартиры
+@text
+Проживает: г. {{address|Москва}}, ул. {{address|Мира}}, д. {{address|1}}, ком. {{address|12}}
+@end
+
+@case id=cor-hn-08 size=sentence polarity=pos expect=mask
+@probes подъезд как п.
+@text
+Доставка: {{address|Москва}}, ул. {{address|Мира}}, д. {{address|1}}, п. {{address|2}}, кв. {{address|48}}
+@end
+
+@case id=cor-hn-09 size=sentence polarity=pos expect=mask
+@probes этаж в адресе доставки
+@text
+Доставка: {{address|Москва}}, ул. {{address|Мира}}, д. {{address|1}}, эт. {{address|3}}, оф. {{address|12}}
+@end
+
+@case id=cor-hn-10 size=sentence polarity=pos expect=mask
+@probes дом через дефис
+@text
+Проживает: г. {{address|Тверь}}, ул. {{address|Советская}}, д. {{address|14-16}}
+@end
+
+@case id=cor-st-01 size=sentence polarity=pos expect=mask
+@probes улица с числом в начале
+@text
+Адрес: {{address|Москва}}, {{address|1-я Тверская-Ямская}} ул., д. {{address|10}}
+@end
+
+@case id=cor-st-02 size=sentence polarity=pos expect=mask
+@probes улица из числа и месяца
+@text
+Адрес: г. {{address|Москва}}, ул. {{address|8 Марта}}, д. {{address|1}}, кв. {{address|2}}
+@end
+
+@case id=cor-st-03 size=sentence polarity=pos expect=mask
+@probes улица с юбилейной датой
+@text
+Адрес: г. {{address|Москва}}, проспект {{address|60-летия Октября}}, д. {{address|9}}
+@end
+
+@case id=cor-st-04 size=sentence polarity=pos expect=mask
+@probes двойная фамилия в названии улицы
+@text
+Адрес: г. {{address|Москва}}, ул. {{address|Римского-Корсакова}}, д. {{address|4}}
+@end
+
+@case id=cor-st-05 size=sentence polarity=pos expect=mask
+@probes улица без маркера вовсе
+@text
+Привезите на {{address|Пролетарскую 28}}, третий подъезд
+@end
+
+@case id=cor-st-06 size=sentence polarity=pos expect=mask
+@probes индекс перед адресом
+@text
+Корреспонденция: {{address|125009}}, г. {{address|Москва}}, ул. {{address|Тверская}}, д. {{address|1}}
+@end
+
+@case id=cor-fio-01 size=sentence polarity=pos expect=mask
+@probes двойная фамилия через дефис
+@text
+Клиент {{fio|Римский-Корсаков Николай Андреевич}} обратился в отделение
+@end
+
+@case id=cor-fio-02 size=sentence polarity=pos expect=mask
+@probes двойная фамилия и инициалы
+@text
+Держатель {{fio|Салтыков-Щедрин М. Е.}} подтвердил операцию
+@end
+
+@case id=cor-fio-03 size=sentence polarity=pos expect=mask
+@probes инициалы перед фамилией
+@text
+Заявитель {{fio|И. И. Иванов}} подал документы
+@end
+
+@case id=cor-fio-04 size=sentence polarity=pos expect=mask
+@probes инициалы после фамилии
+@text
+Заявитель {{fio|Иванов И. И.}} подал документы
+@end
+
+@case id=cor-fio-05 size=sentence polarity=pos expect=mask
+@probes инициалы слитно
+@text
+Заявитель {{fio|Иванов И.И.}} подал документы
+@end
+
+@case id=cor-fio-06 size=sentence polarity=pos expect=mask
+@probes отчество на -ична
+@text
+Клиент {{fio|Кузнецова Мария Ильинична}} закрыла счёт
+@end
+
+@case id=cor-fio-07 size=sentence polarity=pos expect=mask
+@probes отчество на -ич
+@text
+Клиент {{fio|Петров Игорь Кузьмич}} закрыл счёт
+@end
+
+@case id=cor-fio-08 size=sentence polarity=pos expect=mask
+@probes тюркское отчество с оглы
+@text
+Клиент {{fio|Алиев Рашид Мамед оглы}} открыл вклад
+@end
+
+@case id=cor-fio-09 size=sentence polarity=pos expect=mask
+@probes тюркское отчество с кызы
+@text
+Клиент {{fio|Алиева Лейла Мамед кызы}} открыла вклад
+@end
+
+@case id=cor-fio-10 size=sentence polarity=pos expect=mask
+@probes корейское имя из трёх частей
+@text
+Сотрудник {{fio|Ким Ир Сен}} подписал акт
+@end
+
+@case id=cor-fio-11 size=sentence polarity=pos expect=mask
+@probes фамилия совпадает с обычным словом
+@text
+Плательщик {{fio|Мороз Елена Петровна}} внесла платёж
+@end
+
+@case id=cor-fio-12 size=sentence polarity=pos expect=mask
+@probes фамилия-существительное без отчества
+@text
+Получатель {{fio|Соловей Виктор}} получил перевод
+@end
+
+@case id=cor-fio-13 size=sentence polarity=pos expect=mask
+@probes ФИО в родительном падеже
+@text
+Документы {{fio|Виталия Крылова}} приняты в работу
+@end
+
+@case id=cor-fio-14 size=sentence polarity=pos expect=mask
+@probes ФИО в дательном падеже
+@text
+Выплата назначена {{fio|Геннадию Тарасову}} по заявлению
+@end
+
+@case id=cor-doc-01 size=sentence polarity=pos expect=mask
+@probes паспорт четырьмя и шестью цифрами
+@text
+Паспорт {{passport|4509}} {{passport|123456}} выдан ОУФМС
+@end
+
+@case id=cor-doc-02 size=sentence polarity=pos expect=mask
+@probes паспорт парами два-два-шесть
+@text
+Паспорт {{passport|45 09 123456}} выдан ОУФМС
+@end
+
+@case id=cor-doc-03 size=sentence polarity=pos expect=mask
+@probes паспорт после знака номера
+@text
+Паспорт № {{passport|4509 123456}} предъявлен
+@end
+
+@case id=cor-doc-04 size=sentence polarity=pos expect=mask
+@probes паспорт десятью цифрами слитно
+@text
+Паспорт {{passport|4509123456}} предъявлен при обращении
+@end
+
+@case id=cor-doc-05 size=sentence polarity=pos expect=mask
+@probes водительское удостоверение с буквами
+@text
+Водительское удостоверение {{driver_license|77 АА 123456}} действительно
+@end
+
+@case id=cor-doc-06 size=sentence polarity=pos expect=mask
+@probes водительское удостоверение слитно
+@text
+В/У {{driver_license|7712345678}} выдано в 2019 году
+@end
+
+@case id=cor-doc-07 size=sentence polarity=pos expect=mask
+@probes загранпаспорт два и семь
+@text
+Загранпаспорт {{foreign_passport|71 1234567}} действует до 2030 года
+@end
+
+@case id=cor-doc-08 size=sentence polarity=pos expect=mask
+@probes СНИЛС в каноническом виде
+@text
+СНИЛС {{snils|112-233-445 95}} указан в анкете
+@end
+
+@case id=cor-doc-09 size=sentence polarity=pos expect=mask
+@probes СНИЛС без разделителей
+@text
+СНИЛС {{snils|11223344595}} указан в анкете
+@end
+
+@case id=cor-doc-10 size=sentence polarity=pos expect=mask
+@probes СНИЛС названный лицевым счётом
+@text
+Номер лицевого счёта {{snils|112-233-445 95}} для отчётности
+@end
+
+@case id=cor-doc-11 size=sentence polarity=pos expect=mask
+@probes ИНН физического лица двенадцать цифр
+@text
+ИНН {{inn|771234567859}} указан в декларации
+@end
+
+@case id=cor-doc-12 size=sentence polarity=pos expect=mask
+@probes полис ОМС шестнадцать цифр
+@text
+Полис ОМС {{oms|1234567890123456}} действует
+@end
+
+@case id=cor-doc-13 size=sentence polarity=pos expect=mask
+@probes код подразделения
+@text
+Код подразделения {{dept_code|770-001}} в паспорте
+@end
+
+@case id=cor-ph-01 size=sentence polarity=pos expect=mask
+@probes телефон со скобками и дефисами
+@text
+Телефон {{phone|+7 (916) 123-45-67}} для связи
+@end
+
+@case id=cor-ph-02 size=sentence polarity=pos expect=mask
+@probes телефон с восьмёркой и дефисами
+@text
+Телефон {{phone|8916-123-45-67}} для связи
+@end
+
+@case id=cor-ph-03 size=sentence polarity=pos expect=mask
+@probes телефон слитно одиннадцать цифр
+@text
+Тел {{phone|89161234567}} для связи
+@end
+
+@case id=cor-ph-04 size=sentence polarity=pos expect=mask
+@probes телефон с плюсом и пробелами
+@text
+Телефон {{phone|+7 916 1234567}} для связи
+@end
+
+@case id=cor-cd-01 size=sentence polarity=pos expect=mask
+@probes карта группами по четыре
+@text
+Карта {{card|4276 1600 1234 5675}} списание прошло
+@end
+
+@case id=cor-cd-02 size=sentence polarity=pos expect=mask
+@probes карта через дефисы
+@text
+Карта {{card|4276-1600-1234-5675}} списание прошло
+@end
+
+@case id=cor-cd-03 size=sentence polarity=pos expect=mask
+@probes карта слитно
+@text
+Карта {{card|4276160012345675}} списание прошло
+@end
+
+@case id=cor-dt-01 size=sentence polarity=pos expect=mask
+@probes дата точками
+@text
+Дата рождения {{birth_date|12.05.1990}} в анкете
+@end
+
+@case id=cor-dt-02 size=sentence polarity=pos expect=mask
+@probes дата дробями
+@text
+Дата рождения {{birth_date|12/05/1990}} в анкете
+@end
+
+@case id=cor-dt-03 size=sentence polarity=pos expect=mask
+@probes дата по ISO
+@text
+Дата рождения {{birth_date|1990-05-12}} в анкете
+@end
+
+@case id=cor-dt-04 size=sentence polarity=pos expect=mask
+@probes дата словами
+@text
+Родился {{birth_date|12 мая 1990}} г. в Твери
+@end
+
+@case id=cor-em-01 size=sentence polarity=pos expect=mask
+@probes почта с дефисом в домене
+@text
+Пишите на {{email|ivan.petrov@example-mail.org}} по вопросам заявки
+@end
+
+@case id=cor-em-02 size=sentence polarity=pos expect=mask
+@probes почта с плюсом в локальной части
+@text
+Пишите на {{email|ivan+bank@example.com}} по вопросам заявки
+@end
+
+@case id=cor-neg-01 size=sentence polarity=neg expect=clean
+@probes номер заказа рядом со словом доставка
+@text
+Номер заказа 123456, доставка завтра до 18:00
+@end
+
+@case id=cor-neg-02 size=sentence polarity=neg expect=clean
+@probes артикул из паспортной формы
+@text
+Артикул 4509 123456 на складе отсутствует
+@end
+
+@case id=cor-neg-03 size=sentence polarity=neg expect=clean
+@probes сумма в паспортной форме
+@text
+Сумма к оплате 45 09 рублей без учёта комиссии
+@end
+
+@case id=cor-neg-04 size=sentence polarity=neg expect=clean
+@probes ИНН юрлица 10 цифр — по 152-ФЗ не ПДН; ЗНАЕМ и маскируем, см. rule_inn
+@text
+ИНН организации ООО Ромашка 7712345671 в договоре
+@end
+
+@case id=cor-neg-05 size=sentence polarity=neg expect=clean
+@probes ОГРН юридического лица тринадцать цифр
+@text
+ОГРН 1027700132195 указан в реквизитах
+@end
+
+@case id=cor-neg-06 size=sentence polarity=neg expect=clean
+@probes КПП организации девять цифр
+@text
+КПП 770101001 в платёжном поручении
+@end
+
+@case id=cor-neg-07 size=sentence polarity=neg expect=clean
+@probes БИК банка девять цифр
+@text
+БИК 044525225 для перевода
+@end
+
+@case id=cor-neg-08 size=sentence polarity=neg expect=clean
+@probes расчётный счёт организации
+@text
+Расчётный счёт 40702810400000001234 для оплаты счетов
+@end
+
+@case id=cor-neg-09 size=sentence polarity=neg expect=clean
+@probes адрес отделения банка
+@text
+Отделение банка: г. Ростов-на-Дону, ул. Большая Садовая, 1
+@end
+
+@case id=cor-neg-10 size=sentence polarity=neg expect=clean
+@probes публичная персона в косвенном падеже
+@text
+Мы перечитали письма Александра Пушкина к жене
+@end
+
+@case id=cor-neg-11 size=sentence polarity=neg expect=clean
+@probes улица имени человека
+@text
+Улица Гагарина в нашем городе названа в его честь
+@end
+
+@case id=cor-neg-12 size=sentence polarity=neg expect=clean
+@probes название в кавычках
+@text
+Кафе «Пушкин» на Тверской работает до полуночи
+@end
+
+@case id=cor-neg-13 size=sentence polarity=neg expect=clean
+@probes номер рейса
+@text
+Рейс SU 1234 вылетает в 10:00 по расписанию
+@end
+
+@case id=cor-neg-14 size=sentence polarity=neg expect=clean
+@probes трек-номер посылки
+@text
+Трек-номер 45091234567 для отслеживания
+@end
+
+@case id=cor-neg-15 size=sentence polarity=neg expect=clean
+@probes номер договора
+@text
+Договор № 4509-123456 от прошлого года
+@end
+
+@case id=cor-neg-16 size=sentence polarity=neg expect=clean
+@probes время и диапазон
+@text
+Приём с 09:00 до 18:00, перерыв 13:00-14:00
+@end
+
+@case id=cor-neg-17 size=sentence polarity=neg expect=clean
+@probes единый номер поддержки
+@text
+Звоните 8-800-555-35-35, звонок бесплатный
+@end
+
+@case id=cor-neg-18 size=sentence polarity=neg expect=clean
+@probes ролевой почтовый ящик
+@text
+Вопросы направляйте на support@example.com
+@end
+
+@case id=cor-neg-19 size=sentence polarity=neg expect=clean
+@probes обезличенная карта
+@text
+Карта 4276 **** **** 5675 привязана к счёту
+@end
+
+@case id=cor-neg-20 size=sentence polarity=neg expect=clean
+@probes код подъезда в жалобе
+@text
+Подъезд закрыт, код 345 не работает третий день
+@end

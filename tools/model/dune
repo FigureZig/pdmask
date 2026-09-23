@@ -1,0 +1,4 @@
+(executable
+ (name verify_ocaml)
+ (modules verify_ocaml)
+ (libraries pdmask_core eio_main))

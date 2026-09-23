@@ -1,0 +1,38 @@
+# pdmask — конфигурация систем (M6).
+# Профиль default — для /process (проверяющая система шлёт без заголовков).
+# Остальные профили выбираются по заголовку X-PDMask-System.
+
+systems:
+  default:
+    enabled: true
+    mask_mode: stars
+    demask: true
+    pii_types: all
+    threshold: 50
+  crm:
+    enabled: true
+    mask_mode: stars
+    demask: true
+    pii_types: [fio, passport, card, phone, email, address, cvv, pin]
+    threshold: 50
+  analytics:
+    enabled: true
+    mask_mode: token
+    demask: false
+    pii_types: all
+    threshold: 50
+  demo:
+    enabled: true
+    mask_mode: token
+    demask: true
+    pii_types: all
+    threshold: 50
+    irreversible: [cvv, pin]
+
+limits:
+  max_body_bytes: 67108864
+  large_body_threshold: 65536
+  max_inflight_large: 16
+  store_ttl_seconds: 900
+  store_max_bytes: 1073741824
+  keepalive_idle_seconds: 75

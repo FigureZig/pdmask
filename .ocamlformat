@@ -1,0 +1,61 @@
+version = 0.29.0
+profile = conventional
+margin = 100
+
+module-item-spacing = sparse
+let-binding-spacing = compact
+let-binding-indent = 2
+let-and = sparse
+let-module = compact
+indent-after-in = 0
+type-decl = sparse
+type-decl-indent = 2
+break-struct = natural
+
+function-indent = 2
+function-indent-nested = never
+break-fun-decl = wrap
+break-fun-sig = wrap
+wrap-fun-args = true
+
+break-cases = fit-or-vertical
+cases-exp-indent = 4
+cases-matching-exp-indent = normal
+single-case = compact
+nested-match = wrap
+leading-nested-match-parens = false
+indicate-nested-or-patterns = space
+disambiguate-non-breaking-match = false
+
+if-then-else = k-r
+parens-ite = false
+sequence-style = terminator
+sequence-blank-line = preserve-one
+break-sequences = true
+break-infix = fit-or-vertical
+break-infix-before-func = false
+infix-precedence = indent
+exp-grouping = parens
+assignment-operator = end-line
+parens-tuple = always
+parens-tuple-patterns = multi-line-only
+
+break-collection-expressions = fit-or-vertical
+break-separators = after
+dock-collection-brackets = false
+indicate-multiline-delimiters = closing-on-separate-line
+field-space = loose
+space-around-arrays = false
+space-around-lists = false
+space-around-records = false
+space-around-variants = false
+
+break-string-literals = never
+wrap-comments = false
+parse-docstrings = false
+doc-comments = before
+
+extension-indent = 2
+ocp-indent-compat = false
+margin-check = true
+line-endings = lf

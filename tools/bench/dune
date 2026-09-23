@@ -1,0 +1,51 @@
+; Загрузчик корпуса и форматирование отчёта — отдельные библиотеки: их
+; используют оба инструмента, и ни то, ни другое не относится к измеряемому.
+
+(library
+ (name pdmask_corpus)
+ (modules corpus))
+
+(library
+ (name pdmask_report)
+ (modules report))
+
+; Оценка качества: сквозной конвейер против эталона, без HTTP.
+
+(executable
+ (name score_pdmask)
+ (modules score_pdmask)
+ (libraries pdmask_core pdmask_http pdmask_corpus pdmask_report))
+
+; Микробенчмарки. (optional) — если core_bench не установлен, dune молча
+; пропускает цель и сборка самого сервиса не ломается: у жюри лишней
+; зависимости может не быть.
+
+(executable
+ (name bench_pdmask)
+ (modules bench_pdmask)
+ (optional)
+ (libraries
+  pdmask_core
+  pdmask_http
+  pdmask_corpus
+  core
+  core_bench
+  core_unix.command_unix
+  eio_main))
+
+(executable
+ (name prof_stage)
+ (modules prof_stage)
+ (ocamlopt_flags
+  (:standard -g))
+ (libraries pdmask_core pdmask_http pdmask_corpus eio_main unix))
+
+(executable
+ (name check_textindex)
+ (modules check_textindex)
+ (libraries pdmask_core eio_main))
+
+(executable
+ (name check_envelope)
+ (modules check_envelope)
+ (libraries pdmask_core mirage-crypto-rng mirage-crypto-rng.unix unix))

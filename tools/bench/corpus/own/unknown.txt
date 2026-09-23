@@ -1,0 +1,763 @@
+# Диагностический корпус: те же кейсы, но с ИМЕНАМИ ВНЕ СЛОВАРЕЙ.
+#
+# Получен из own/cases.txt заменой всех значений ФИО, адреса и места рождения
+# на синтетические, которых нет ни в names.txt, ни в surnames.txt, ни в
+# patronymics.txt, ни в geox.txt, ни в countries.txt. Морфология сохранена:
+# фамилии кончаются на -ов/-ин/-ский/-ко/-ев, отчества на -ович/-евна и так
+# далее.
+#
+# Зачем. Настроечные корпуса не могут измерить то, ради чего нужна
+# последовательная модель: имена в них есть в наших словарях, и правила их
+# находят без всякой модели. Этот корпус отвечает ровно на один вопрос —
+# узнаёт ли решение человека и место, которых оно никогда не видело.
+#
+# Слепой тест для этого использовать нельзя: он финальный харнесс.
+
+@case id=micro-fio-01 size=micro polarity=pos expect=mask
+@probes ФИО целиком составляет payload
+@text
+{{fio|Горавуов Пахудаислав Ладаноович}}
+@end
+
+@case id=micro-fio-02 size=micro polarity=pos expect=mask
+@probes то же в нижнем регистре — инвариант 10
+@text
+{{fio|Дыруов Бебуфеентий Гувузуевич}}
+@end
+
+@case id=micro-fio-03 size=micro polarity=pos expect=mask
+@probes то же в верхнем регистре
+@text
+{{fio|Пуреский Нывуислав Мыноовна}}
+@end
+
+@case id=micro-fio-04 size=micro polarity=pos expect=mask
+@probes фамилия и инициалы через точки
+@text
+{{fio|Покидеин А. С.}}
+@end
+
+@case id=micro-date-01 size=micro polarity=pos expect=mask
+@probes дата без контекста, порядок дд.мм.гггг
+@text
+{{birth_date|12.03.1990}}
+@end
+
+@case id=micro-date-02 size=micro polarity=pos expect=mask
+@probes порядок гггг-мм-дд
+@text
+{{birth_date|1990-03-12}}
+@end
+
+@case id=micro-date-03 size=micro polarity=pos expect=mask
+@probes порядок мм/дд/гггг — ТЗ 4.2 требует терпимости
+@text
+{{birth_date|03/12/1990}}
+@end
+
+@case id=micro-card-01 size=micro polarity=pos expect=mask
+@probes карта, Луна сходится → E_CHECKSUM
+@text
+{{card|4276 3800 1234 5679}}
+@end
+
+@case id=micro-card-02 size=micro polarity=pos expect=mask
+@probes карта, Луна НЕ сходится — правило не должно требовать контрольную сумму
+@text
+{{card|4276 3800 1234 5678}}
+@end
+
+@case id=micro-card-03 size=micro polarity=pos expect=mask
+@probes карта слитно, без разделителей
+@text
+{{card|4276380012345679}}
+@end
+
+@case id=micro-inn-01 size=micro polarity=pos expect=mask
+@probes ИНН 10 знаков, контрольная сумма верна
+@text
+{{inn|7707083893}}
+@end
+
+@case id=micro-inn-02 size=micro polarity=pos expect=mask
+@probes ИНН 12 знаков (физлицо)
+@text
+{{inn|770708389324}}
+@end
+
+@case id=micro-phone-01 size=micro polarity=pos expect=mask
+@probes телефон в формате +7 с разделителями
+@text
+{{phone|+7 916 123-45-67}}
+@end
+
+@case id=micro-phone-02 size=micro polarity=pos expect=mask
+@probes телефон через 8 и скобки
+@text
+{{phone|8 (916) 123-45-67}}
+@end
+
+@case id=micro-phone-03 size=micro polarity=pos expect=mask
+@probes телефон слитно
+@text
+{{phone|+79161234567}}
+@end
+
+@case id=micro-email-01 size=micro polarity=pos expect=mask
+@probes email как весь payload
+@text
+{{email|ivan.ivanov@example.com}}
+@end
+
+@case id=micro-email-02 size=micro polarity=pos expect=mask
+@probes email с плюс-адресацией и дефисом
+@text
+{{email|i-ivanov+bank@mail.example.org}}
+@end
+
+@case id=micro-passport-01 size=micro polarity=pos expect=mask
+@probes паспорт формы 4+6 без ключевого слова
+@text
+{{passport|4509 123456}}
+@end
+
+@case id=micro-addr-01 size=micro polarity=pos expect=mask
+@probes адрес как весь payload; маркеры вне спанов
+@text
+г. {{address|Пиноинское}}, ул. {{address|Павулеинск}}, д. {{address|14}}, кв. {{address|7}}
+@end
+
+@case id=micro-snils-01 size=micro polarity=pos expect=mask
+@probes СНИЛС — доп. документ сверх паспорта РФ (ТЗ, раздел 6)
+@text
+{{snils|112-233-445 95}}
+@end
+
+@case id=micro-dl-01 size=micro polarity=pos expect=mask
+@probes водительское удостоверение, форма 2+2+6
+@text
+{{driver_license|77 12 345678}}
+@end
+
+@case id=micro-deptcode-01 size=micro polarity=pos expect=mask
+@probes код подразделения, форма 3-3
+@text
+{{dept_code|770-001}}
+@end
+
+@case id=micro-neg-01 size=micro polarity=neg expect=clean
+@probes год выпуска — не дата рождения
+@text
+2010
+@end
+
+@case id=micro-neg-02 size=micro polarity=neg expect=clean
+@probes цена — не ПДН
+@text
+1500 рублей
+@end
+
+@case id=micro-neg-03 size=micro polarity=neg expect=clean
+@probes короткое число без контекста
+@text
+42
+@end
+
+@case id=micro-neg-04 size=micro polarity=neg expect=clean
+@probes нарицательное слово на -ов в родительном мн. ч.
+@text
+мостов
+@end
+
+@case id=micro-neg-05 size=micro polarity=neg expect=clean
+@probes обычное слово, омографичное фамилии
+@text
+магазин
+@end
+
+@case id=sent-fio-01 size=sentence polarity=pos expect=mask
+@probes ФИО при слове-роли → E_ROLE
+@text
+Клиент {{fio|Ларатуев Кыкумуольд Фазоович}} обратился в отделение за выпиской.
+@end
+
+@case id=sent-fio-02 size=sentence polarity=pos expect=mask
+@probes ФИО в родительном падеже после слова владения → E_POSSESS
+@text
+Прошу выдать дубликат паспорта {{fio|Сызыев Зылыкаольд Гувобеентий}} в связи с утратой.
+@end
+
+@case id=sent-fio-03 size=sentence polarity=pos expect=mask
+@probes ФИО без отчества
+@text
+Договор подписал {{fio|Селоко Голуентий}}, экземпляр передан на хранение.
+@end
+
+@case id=sent-fio-04 size=sentence polarity=pos expect=mask
+@probes фамилия вне словаря: проверяет потолок лексикона
+@text
+Заявку оформил клиент {{fio|Фофуский Кыходеислав Гереович}}, копия приложена.
+@end
+
+@case id=sent-birth-01 size=sentence polarity=pos expect=mask
+@probes дата рождения по ключевому слову
+@text
+Дата рождения {{birth_date|15.07.1985}}, подтверждена паспортом.
+@end
+
+@case id=sent-birth-02 size=sentence polarity=pos expect=mask
+@probes дата рождения текстом — ТЗ 4.2 требует явно
+@text
+Родился {{birth_date|15 июля 1985 года}} в городе Казани.
+@end
+
+@case id=sent-bplace-01 size=sentence polarity=pos expect=mask
+@probes МЕСТО РОЖДЕНИЯ: детектора нет вообще (долг M3)
+@text
+Место рождения — {{birth_place|город Фугизаовское}}, что подтверждается свидетельством.
+@end
+
+@case id=sent-citizen-01 size=sentence polarity=pos expect=mask
+@probes ГРАЖДАНСТВО: детектора нет вообще (долг M3)
+@text
+Гражданство — {{citizenship|Российская Федерация}}, иного не имеет.
+@end
+
+@case id=sent-issuer-01 size=sentence polarity=pos expect=mask
+@probes ОРГАН ВЫДАЧИ: детектора нет вообще (долг M3)
+@text
+Паспорт выдан {{issuer|ОУФМС России по Тверской области в Заволжском районе}}.
+@end
+
+@case id=sent-issue-01 size=sentence polarity=pos expect=mask
+@probes дата выдачи отличается от даты рождения ближайшим словом
+@text
+Паспорт выдан {{issue_date|21.08.2010}}, срок действия не истёк.
+@end
+
+@case id=sent-pass-01 size=sentence polarity=pos expect=mask
+@probes паспорт с разделяющими словами — ТЗ 4.2 и критерий 3.3
+@text
+Паспорт серия {{passport|4509}} номер {{passport|123456}}, выдан отделом внутренних дел.
+@end
+
+@case id=sent-pass-02 size=sentence polarity=pos expect=mask
+@probes паспорт слитной формы 4+6 при ключевом слове
+@text
+Предъявлен паспорт {{passport|4509 123456}} на имя заявителя.
+@end
+
+@case id=sent-dl-01 size=sentence polarity=pos expect=mask
+@probes ВУ отличается от паспорта только ключевым словом
+@text
+Водительское удостоверение {{driver_license|77 12 345678}} действительно до 2030 года.
+@end
+
+@case id=sent-dept-01 size=sentence polarity=pos expect=mask
+@probes код подразделения при ключевом слове
+@text
+Код подразделения {{dept_code|770-001}}, отделение по месту жительства.
+@end
+
+@case id=sent-addr-01 size=sentence polarity=pos expect=mask
+@probes адрес проживания с квартирой
+@text
+Проживает по адресу: г. {{address|Пукесуейск}}, ул. {{address|Хытулоинское}}, д. {{address|14}}, кв. {{address|7}}.
+@end
+
+@case id=sent-addr-02 size=sentence polarity=pos expect=mask
+@probes адрес с индексом
+@text
+Корреспонденцию направлять: {{address|170100}}, г. {{address|Мылаовск}}, наб. {{address|Мевиейск Бугуовское}}, д. {{address|3}}, кв. {{address|21}}.
+@end
+
+@case id=sent-email-01 size=sentence polarity=pos expect=mask
+@probes email в переписке
+@text
+Ответ продублирован на {{email|a.smirnov@example.com}} по просьбе клиента.
+@end
+
+@case id=sent-phone-01 size=sentence polarity=pos expect=mask
+@probes телефон при ключевом слове
+@text
+Контактный телефон {{phone|+7 916 123-45-67}}, звонить после 18:00.
+@end
+
+@case id=sent-inn-01 size=sentence polarity=pos expect=mask
+@probes ИНН при ключевом слове
+@text
+ИНН {{inn|7707083893}} указан в анкете со слов клиента.
+@end
+
+@case id=sent-card-01 size=sentence polarity=pos expect=mask
+@probes карта при ключевом слове
+@text
+Списание произведено с карты {{card|4276 3800 1234 5679}}.
+@end
+
+@case id=sent-cvv-01 size=sentence polarity=pos expect=mask
+@probes CVV при ключевом слове
+@text
+Клиент продиктовал cvv {{cvv|123}}, что является нарушением регламента.
+@end
+
+@case id=sent-holder-01 size=sentence polarity=pos expect=mask
+@probes имя держателя латиницей рядом с картой
+@text
+На карте указан держатель {{card_holder|IVAN IVANOV}}, срок до 09/29.
+@end
+
+@case id=sent-holder-02 size=sentence polarity=pos expect=mask
+@probes держатель строчными — заглавные лишь доказательство
+@text
+Держатель карты {{card_holder|ivan ivanov}}, подпись на обороте отсутствует.
+@end
+
+@case id=var-case-upper size=sentence polarity=pos expect=mask
+@probes регистр: ВЕРХНИЙ — ТЗ требует независимости
+@text
+ПАСПОРТ СЕРИЯ {{passport|4509}} НОМЕР {{passport|123456}}, {{fio|Вепоин Куковаольд Мозагаовна}}
+@end
+
+@case id=var-case-lower size=sentence polarity=pos expect=mask
+@probes регистр: нижний
+@text
+паспорт серия {{passport|4509}} номер {{passport|123456}}, {{fio|Мыгубеев Гынатуентий Синиевич}}
+@end
+
+@case id=var-case-mixed size=sentence polarity=pos expect=mask
+@probes регистр: чередующийся
+@text
+ПаСпОрТ СеРиЯ {{passport|4509}} НоМеР {{passport|123456}}, {{fio|Тенутуский Петеольд Думиович}}
+@end
+
+@case id=var-date-ddmmyyyy size=sentence polarity=pos expect=mask
+@probes дата дд.мм.гггг
+@text
+Дата рождения {{birth_date|12.03.1990}}.
+@end
+
+@case id=var-date-mmddyyyy size=sentence polarity=pos expect=mask
+@probes дата мм.дд.гггг — ТЗ называет прямо
+@text
+Дата рождения {{birth_date|03.12.1990}}.
+@end
+
+@case id=var-date-yyyyddmm size=sentence polarity=pos expect=mask
+@probes дата гггг.дд.мм — ТЗ называет прямо
+@text
+Дата рождения {{birth_date|1990.12.03}}.
+@end
+
+@case id=var-date-dashes size=sentence polarity=pos expect=mask
+@probes дата через дефис
+@text
+Дата рождения {{birth_date|12-03-1990}}.
+@end
+
+@case id=var-date-slashes size=sentence polarity=pos expect=mask
+@probes дата через косую черту
+@text
+Дата рождения {{birth_date|12/03/1990}}.
+@end
+
+@case id=var-date-text-01 size=sentence polarity=pos expect=mask
+@probes дата словами — ТЗ 4.2 требует явно
+@text
+Дата рождения — {{birth_date|двенадцатое марта тысяча девятьсот девяностого года}}.
+@end
+
+@case id=var-date-text-02 size=sentence polarity=pos expect=mask
+@probes дата цифра+месяц словом
+@text
+Родилась {{birth_date|3 апреля 1978 г.}} в посёлке городского типа.
+@end
+
+@case id=var-sep-01 size=sentence polarity=pos expect=mask
+@probes разделяющие слова: серия … номер …
+@text
+Паспорт серия {{passport|45 09}} номер {{passport|123456}}.
+@end
+
+@case id=var-sep-02 size=sentence polarity=pos expect=mask
+@probes разделяющее слово с лишними пробелами
+@text
+серия   {{passport|4509}}   номер   {{passport|123456}}
+@end
+
+@case id=var-sep-03 size=sentence polarity=pos expect=mask
+@probes серия и номер через перевод строки
+@text
+Серия {{passport|4509}}
+Номер {{passport|123456}}
+@end
+
+@case id=trap-public-01 size=sentence polarity=neg expect=clean
+@probes публичная персона при стоп-контексте — канонический пример ТЗ
+@text
+Поэт Александр Сергеевич Пушкин родился в Москве в 1799 году.
+@end
+
+@case id=trap-public-02 size=sentence polarity=neg expect=clean
+@probes публичная персона без контекста, полное имя
+@text
+Александр Пушкин
+@end
+
+@case id=trap-public-03 size=sentence polarity=neg expect=clean
+@probes публичная персона в родительном падеже
+@text
+Мы перечитали письма Александра Пушкина к жене.
+@end
+
+@case id=trap-public-04 size=sentence polarity=neg expect=clean
+@probes фамилия публичной персоны как подлежащее
+@text
+Менделеев открыл периодический закон в 1869 году.
+@end
+
+@case id=trap-eponym-01 size=sentence polarity=neg expect=clean
+@probes эпоним: улица названа именем, а не принадлежит ему
+@text
+Встреча назначена на углу улицы Пушкина и переулка Чехова.
+@end
+
+@case id=trap-eponym-02 size=sentence polarity=neg expect=clean
+@probes эпоним: научный объект
+@text
+В школьном курсе разбирают таблицу Менделеева и закон Ома.
+@end
+
+@case id=trap-eponym-03 size=sentence polarity=neg expect=clean
+@probes эпоним: маркер «имени»
+@text
+Концерт прошёл в зале имени Чайковского при полном аншлаге.
+@end
+
+@case id=trap-eponym-04 size=sentence polarity=neg expect=clean
+@probes эпоним: прилагательное от фамилии
+@text
+Пушкинская карта действует для посетителей до 22 лет.
+@end
+
+@case id=trap-eponym-05 size=sentence polarity=neg expect=clean
+@probes эпоним: памятник
+@text
+Памятник Гагарину отреставрировали прошлой осенью.
+@end
+
+@case id=trap-title-01 size=sentence polarity=neg expect=clean
+@probes название в кавычках → E_TITLE
+@text
+Роман «Евгений Онегин» входит в школьную программу.
+@end
+
+@case id=trap-title-02 size=sentence polarity=neg expect=clean
+@probes заведение в кавычках
+@text
+Мы обедали в кафе «Пушкин» на Тверском бульваре.
+@end
+
+@case id=trap-orgaddr-01 size=sentence polarity=neg expect=clean
+@probes адрес отделения банка — канонический пример ТЗ
+@text
+Адрес отделения банка: г. Москва, ул. Тверская, 13.
+@end
+
+@case id=trap-orgaddr-02 size=sentence polarity=neg expect=clean
+@probes адрес отделения, другой город
+@text
+Обратитесь в офис по адресу г. Ростов-на-Дону, ул. Большая Садовая, 1.
+@end
+
+@case id=trap-num-01 size=sentence polarity=neg expect=clean
+@probes номер заказа из 10 цифр — форма совпадает с ИНН и паспортом
+@text
+Заказ номер 1234567890 доставлен вовремя, спасибо за покупку.
+@end
+
+@case id=trap-num-02 size=sentence polarity=neg expect=clean
+@probes артикул и количество
+@text
+Артикул 4509 123456 снят с производства, остаток 12 штук.
+@end
+
+@case id=trap-num-03 size=sentence polarity=neg expect=clean
+@probes годы и проценты
+@text
+Компания работает с 2010 года и имеет 150 сотрудников в 12 городах.
+@end
+
+@case id=trap-num-04 size=sentence polarity=neg expect=clean
+@probes измерения
+@text
+Температура сегодня 23 градуса, влажность 45 процентов, давление 750 мм.
+@end
+
+@case id=trap-num-05 size=sentence polarity=neg expect=clean
+@probes длинное число, не проходящее Луна и без ключевых слов
+@text
+Инвентарный код оборудования 9999888877776666 нанесён на корпус.
+@end
+
+@case id=trap-corp-01 size=sentence polarity=neg expect=clean
+@probes корпоративный email — спорный случай, помечаем сознательно
+@text
+Вопросы направляйте в поддержку: support@example.com.
+@end
+
+@case id=trap-word-01 size=sentence polarity=neg expect=clean
+@probes нарицательные на -ов/-ев в родительном мн. ч.
+@text
+Строительство мостов и путепроводов ведётся силами двух подрядчиков.
+@end
+
+@case id=trap-word-02 size=sentence polarity=neg expect=clean
+@probes омографы фамилий среди обычных слов
+@text
+В отчёте перечислены остатки вкладов, резервов и активов на конец года.
+@end
+
+@case id=trap-pin-01 size=sentence polarity=neg expect=clean
+@probes ПИН без номера карты — ТЗ, раздел 6: НЕ маскируем
+@text
+Пин-код 1234 клиент установил самостоятельно в банкомате.
+@end
+
+@case id=pair-pushkin-neg size=sentence polarity=neg expect=clean
+@probes пара 1/2: Пушкин как поэт
+@text
+Поэт Александр Пушкин написал «Медного всадника».
+@end
+
+@case id=pair-pushkin-pos size=sentence polarity=pos expect=mask
+@probes пара 2/2: тот же Пушкин как клиент — решает контекст
+@text
+Клиент {{fio|Тимиин Мыкивеислав}}, паспорт {{passport|4509 123456}}, обратился за справкой.
+@end
+
+@case id=pair-addr-neg size=sentence polarity=neg expect=clean
+@probes пара 1/2: адрес отделения
+@text
+Отделение банка: г. Ростов-на-Дону, ул. Большая Садовая, 1.
+@end
+
+@case id=pair-addr-pos size=sentence polarity=pos expect=mask
+@probes пара 2/2: тот же адрес с квартирой — у отделения её не бывает
+@text
+Клиент проживает: г. {{address|Мекеинск}}, ул. {{address|Хыкывыовское Мелыинск}}, {{address|1}}, кв. {{address|5}}.
+@end
+
+@case id=pair-surname-neg size=sentence polarity=neg expect=clean
+@probes пара 1/2: фамилия называет вещь
+@text
+Улица Пушкина отремонтирована в прошлом году.
+@end
+
+@case id=pair-surname-pos size=sentence polarity=pos expect=mask
+@probes пара 2/2: та же фамилия владеет документом
+@text
+Паспорт {{fio|Мосасеин}} находится на оформлении, срок — три дня.
+@end
+
+@case id=pair-pin-neg size=sentence polarity=neg expect=clean
+@probes пара 1/2: ПИН сам по себе (ТЗ: не маскируем)
+@text
+Пин-код 4321 меняется в приложении.
+@end
+
+@case id=pair-pin-pos size=sentence polarity=pos expect=mask
+@probes пара 2/2: ПИН вместе с картой — комбинационное правило
+@text
+К карте {{card|4276 3800 1234 5679}} установлен пин-код {{pin|4321}}.
+@end
+
+@case id=marker-addr-01 size=sentence polarity=pos expect=mask
+@probes маркеры г./ул./д./кв. ОСТАЮТСЯ открытыми
+@text
+Адрес: г. {{address|Бепоейск}}, ул. {{address|Ригунеовск}}, д. {{address|14}}, кв. {{address|7}}.
+@end
+
+@case id=marker-addr-02 size=sentence polarity=pos expect=mask
+@probes индекс — значение, слово «индекс» — маркер
+@text
+Индекс {{address|170100}}, город {{address|Ныхеинск}}, улица {{address|Бидиейск}}, дом {{address|8}}.
+@end
+
+@case id=marker-pass-01 size=sentence polarity=pos expect=mask
+@probes слова «серия» и «номер» остаются открытыми
+@text
+Паспорт серия {{passport|4509}} номер {{passport|123456}}.
+@end
+
+@case id=marker-date-01 size=sentence polarity=pos expect=mask
+@probes слово «года» остаётся открытым
+@text
+Дата рождения {{birth_date|12 марта 1990}} года.
+@end
+
+@case id=doc-anketa-01 size=document polarity=mixed expect=mask
+@probes анкета: много типов сразу, плюс ловушка в конце
+@text
+АНКЕТА КЛИЕНТА
+
+Фамилия, имя, отчество: {{fio|Зулебыский Руфулуомир Нубоевич}}
+Дата рождения: {{birth_date|03.04.1988}}
+Место рождения: {{birth_place|г. Тегеинск}}
+Гражданство: {{citizenship|Российская Федерация}}
+Паспорт: серия {{passport|5804}} номер {{passport|667712}}
+Выдан: {{issuer|ОУФМС России по Псковской области}}
+Дата выдачи: {{issue_date|19.05.2008}}
+Код подразделения: {{dept_code|600-003}}
+Адрес регистрации: г. {{address|Кынуейское}}, ул. {{address|Хубеовское}}, д. {{address|21}}, кв. {{address|4}}
+Телефон: {{phone|+7 911 204-31-88}}
+Электронная почта: {{email|m.sokolova@example.com}}
+ИНН: {{inn|770708389324}}
+СНИЛС: {{snils|112-233-445 95}}
+
+Примечание: анкета заполнена в отделении по адресу г. Псков, Октябрьский проспект, 20 — это адрес офиса, а не клиента.
+
+@end
+
+@case id=doc-chat-01 size=document polarity=mixed expect=mask
+@probes диалог с оператором: разговорная речь и ловушка с поэтом
+@text
+— Здравствуйте! Меня зовут {{fio|Таноев}}, чем могу помочь?
+— Добрый день. Не приходит выписка на почту.
+— Уточните адрес почты, пожалуйста.
+— {{email|petrov.87@example.org}}
+— Спасибо. Назовите фамилию и дату рождения для сверки.
+— {{fio|Тамиев Симуольд}}, {{birth_date|07.11.1987}}.
+— Вижу вас. Последние четыре цифры карты?
+— Карта {{card|4276380012345679}}, если полностью.
+— Достаточно четырёх, полный номер называть не нужно.
+— Понял. Кстати, я живу на улице Пушкина, это не мешает доставке?
+— Нет, улица значения не имеет.
+
+@end
+
+@case id=doc-claim-01 size=document polarity=mixed expect=mask
+@probes заявление: владение + эпоним в одном тексте
+@text
+Управляющему отделением
+
+от {{fio|Сухиев Фогоислав Мивыдоислав}}
+тел. {{phone|8 (920) 447-19-02}}
+
+ЗАЯВЛЕНИЕ
+
+Прошу перевыпустить карту {{card|4276380012345679}} в связи с утратой. Паспорт {{fio|Ритаин}} прилагаю: серия {{passport|2815}} номер {{passport|904113}}, выдан {{issue_date|14.02.2016}}.
+Прошу направить готовую карту в отделение на улице Крылова, дом 3 — это ближайшее ко мне отделение.
+
+Подпись
+
+@end
+
+@case id=doc-neg-01 size=document polarity=neg expect=clean
+@probes деловое письмо вообще без ПДН — чистый тест точности
+@text
+Уважаемые коллеги!
+
+Направляем сводку по объёмам за третий квартал. Отгрузка цемента выросла на 12 процентов, поставки щебня остались на уровне прошлого периода. Договор с подрядчиком продлён до конца года на прежних условиях.
+
+Отдельно отмечаем, что склад на улице Заводской переведён в круглосуточный режим, а приёмка по накладным номер 4471 и 4472 завершена без замечаний. Температура хранения выдерживается в пределах 18 градусов.
+
+Приложение: таблица на двух листах.
+
+@end
+
+@case id=doc-neg-02 size=document polarity=neg expect=clean
+@probes исторический текст: много имён, ни одного клиента
+@text
+Периодический закон был сформулирован Менделеевым в 1869 году и стал основой современной химии. Работы Бутлерова и Зинина развивали ту же традицию. Позднее закон Ома и правило Ленца вошли в школьные курсы физики наравне с таблицей Менделеева.
+
+Улица Менделеева в этом городе названа в его честь, там же расположен музей имени Бутлерова, открытый по инициативе университета.
+
+@end
+
+@case id=multi-01 size=document polarity=pos expect=mask
+@probes две персоны: проверяет, что спаны не склеиваются между собой
+@text
+Договор заключён между {{fio|Гихемеов Хогыфеомир Нокодиентий}}, паспорт {{passport|4509 123456}}, и {{fio|Сибиев Мыбокуентий Вехаислав}}, паспорт {{passport|4611 998877}}. Контакты сторон: {{phone|+7 916 123-45-67}} и {{phone|+7 903 555-11-22}} соответственно.
+@end
+
+@case id=multi-02 size=document polarity=mixed expect=mask
+@probes три персоны вперемешку с публичной
+@text
+Присутствовали: {{fio|Захезеко А. В.}}, {{fio|Ленупоский Е. И.}}, {{fio|Затыин Т. Р.}}. Обсуждали выставку, посвящённую Репину, и ремонт на улице Репина.
+@end
+
+@case id=adv-ws-01 size=sentence polarity=pos expect=mask
+@probes множественные пробелы и табуляции внутри значения
+@text
+Клиент	{{fio|Хазараский Певиислав Бинохиевич}}	, карта	{{card|4276380012345679}}
+@end
+
+@case id=adv-nl-01 size=sentence polarity=pos expect=mask
+@probes значение разорвано переводом строки
+@text
+ФИО:
+{{fio|Ныдаин Бедириомир Мурезиович}}
+Паспорт:
+{{passport|4509 123456}}
+@end
+
+@case id=adv-punct-01 size=sentence polarity=pos expect=mask
+@probes значение в скобках и с точкой
+@text
+(см. клиента {{fio|Бабынуин И. И.}}), тел. {{phone|+7 916 123-45-67}}.
+@end
+
+@case id=adv-quote-01 size=sentence polarity=pos expect=mask
+@probes кавычки вокруг НЕ имени — E_TITLE не должен гасить ПДН
+@text
+Клиент {{fio|Довыфыко Нонисеомир Дысыгоовна}} работает в ООО «Ромашка».
+@end
+
+@case id=adv-yo-01 size=sentence polarity=pos expect=mask
+@probes буква ё в имени и фамилии
+@text
+Клиент {{fio|Фебаский Гавыфоентий Сибоевич}}, паспорт {{passport|4509 123456}}.
+@end
+
+@case id=adv-latin-01 size=sentence polarity=pos expect=mask
+@probes латиница вперемешку с кириллицей
+@text
+Cardholder {{card_holder|PETR FEDOROV}}, карта {{card|4276380012345679}}, статус OK.
+@end
+
+@case id=adv-empty-01 size=micro polarity=neg expect=clean
+@probes пустая строка
+@text
+
+@end
+
+@case id=adv-space-01 size=micro polarity=neg expect=clean
+@probes только пробелы
+@text
+   
+@end
+
+@case id=adv-punct-only size=micro polarity=neg expect=clean
+@probes только знаки препинания
+@text
+..., -- ///
+@end
+
+@case id=adv-long-token size=sentence polarity=neg expect=clean
+@probes один очень длинный токен без ПДН
+@text
+Идентификатор aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa записан в журнал.
+@end
+
+@case id=adv-digits-run size=sentence polarity=neg expect=clean
+@probes длинный пробег цифр через пробелы — был квадратичным
+@text
+Контрольная последовательность: 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 конец.
+@end
+
+@case id=adv-json-01 size=sentence polarity=pos expect=mask
+@probes значение с кавычками и обратными слэшами рядом
+@text
+Комментарий: "клиент {{fio|Зобиский Нидахиомир Гаковоовна}} \ подтвердил", статус ok.
+@end
