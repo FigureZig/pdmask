@@ -235,18 +235,33 @@ print(f'{code % 100000000:08d}')
     ;;
 
   zip)
+    # Раздел 7.1 ТЗ: в архив идёт только исходный код, без датасетов, дампов,
+    # каталогов сборки и скомпилированных бинарников.
+    #
+    # Состав архива задаётся одним источником правды — .gitignore. Берём ровно
+    # то, что versioned, с текущим содержимым рабочего дерева. Раньше список
+    # путей был записан здесь отдельно, и он разошёлся с .gitignore: текст для
+    # замеров скорости лежал под версией, но в архив не попадал, а README
+    # каталога внешних датасетов — наоборот.
+    #
+    # Что остаётся и почему:
+    #   dicts/     — не тестовые данные, а рабочие справочники: сервис читает
+    #                их при старте, без них решение не работает;
+    #   corpus/own — собственные корпуса на сто с небольшим кейсов, по ним
+    #                видно, на чём решение проверялось.
+    # Чужие датасеты (26 МБ, включая слепой тест) в .gitignore и в архив не
+    # идут; их README остаётся, в нём записано, откуда они и как их скачать.
     echo "==> creating pdmask.zip"
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+      echo "не git-репозиторий: состав архива определить нечем" >&2
+      exit 1
+    fi
     rm -f pdmask.zip
-    zip -r pdmask.zip \
-      dune-project Dockerfile run.sh .ocamlformat README.md \
-      bin lib config dicts models tools web \
-      -x '*/_build/*' -x '*/.git/*' -x '*.zip' \
-      -x 'tools/.pii_bench_cache/*' \
-      -x '*/__pycache__/*' -x '*.pyc' \
-      -x '*/.gitkeep'
-    echo "zip: OK (pdmask.zip)"
+    # zip -@ читает имена построчно; имён с переводом строки в репозитории нет
+    git ls-files | zip -q pdmask.zip -@
+    echo "zip: OK (pdmask.zip, $(du -h pdmask.zip | cut -f1))"
+    zip -sf pdmask.zip | tail -1
     ;;
-
   help|*)
     echo "usage: ./run.sh {host|build|up|down|reload|selfcheck|eval|tune|bench|big|zip|fmt|check}"
     ;;
